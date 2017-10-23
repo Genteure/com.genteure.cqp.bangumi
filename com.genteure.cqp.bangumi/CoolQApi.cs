@@ -7,7 +7,7 @@ namespace com.genteure.cqp.bangumi
 {
     internal static class CoolQApi
     {
-        const string AppID = "com.genteure.cqp.bangumi";
+
         private static int ac;
 
         /// <summary>
@@ -220,7 +220,7 @@ namespace com.genteure.cqp.bangumi
         private static class NativeMethods
         {
             [DllExport("AppInfo")]
-            public static string AppInfo() => "9," + AppID;
+            public static string AppInfo() => "9," + Bangumi.AppID;
 
             [DllExport("Initialize", CallingConvention.StdCall)]
             public static int Initialize(int i) => ac = i;
