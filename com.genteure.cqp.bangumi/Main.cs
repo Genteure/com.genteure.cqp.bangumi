@@ -24,9 +24,10 @@ namespace com.genteure.cqp.bangumi
         [DllExport("_eventStartup", CallingConvention.StdCall)]
         internal static CoolQApi.Event Startup()
         {
+            JobManager.JobException += x => CoolQApi.SendPrivateMsg(MasterQQ, x.Name + x.Exception.ToString());
             JobManager.UseUtcTime();
             JobManager.Initialize(new MyRegistry());
-            CoolQApi.AddLog(CoolQApi.LogLevel.Debug, "任务", "初始化");
+
             // db = new SQLiteAsyncConnection("TODO");
             // TODO: 初始化计时器系统 刷新番剧数据
             return CoolQApi.Event.Ignore;

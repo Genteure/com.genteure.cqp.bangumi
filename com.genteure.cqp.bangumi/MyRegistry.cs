@@ -76,13 +76,13 @@ namespace com.genteure.cqp.bangumi
                 blist.Where(x => x.is_published == 0 && x.pub_ts_datetime < before).ToList().ForEach(x =>
                 {
                     // 计划定时任务
-                    Schedule(x).WithName(BANGUMI_NAME).ToRunOnceAt(x.pub_ts_datetime);
+                    JobManager.AddJob(x, z => z.WithName(BANGUMI_NAME).ToRunOnceAt(x.pub_ts_datetime));
                 });
             }
             catch (Exception)
             {
                 JobManager.RemoveJob(FETCH_RETRY);
-                Schedule(() => FetchAndUpdateBangumiData()).WithName(FETCH_RETRY).ToRunOnceIn(TRY_INTERVAL_MINUTES).Minutes(); // Retry
+                JobManager.AddJob(() => FetchAndUpdateBangumiData(), x => x.WithName(FETCH_RETRY).ToRunOnceIn(TRY_INTERVAL_MINUTES).Minutes()); // Retry
                 throw;
             }
         }

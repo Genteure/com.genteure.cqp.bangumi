@@ -29,10 +29,14 @@ namespace com.genteure.cqp.bangumi
         public void Execute()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("【番】【{0}】更新啦！", title);
-            sb.AppendFormat("{0} 更新时间：{1}", pub_index, pub_time);
-            sb.AppendFormat("https://bangumi.bilibili.com/anime/{0}/play#{1}", season_id, ep_id);
-            CoolQApi.SendPrivateMsg(Main.MasterQQ, sb.ToString());
+            sb.AppendFormat("【番】【{0}】更新啦！\n", title);
+            sb.AppendFormat("{0} 更新时间：{1}\n", pub_index, pub_time);
+            sb.AppendFormat("https://bangumi.bilibili.com/anime/{0}/play#{1} \n", season_id, ep_id);
+            sb.Append("\n注：这是一个还在开发中的半成品插件——宅急送队长");
+            // CoolQApi.SendPrivateMsg(Main.MasterQQ, sb.ToString());
+            long[] g = { 627565437, 95349372, 423768065, 549858724 };
+            foreach (var q in g)
+                CoolQApi.SendGroupMsg(q, sb.ToString());
         }
 
         public string cover { get; set; }
