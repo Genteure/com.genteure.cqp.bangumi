@@ -34,50 +34,186 @@ namespace com.genteure.cqp.bangumi
         /// <returns></returns>
         public static int SendDiscussMsg(long DiscussID, string Message) => NativeMethods.CQ_sendDiscussMsg(ac, DiscussID, Message);
 
+        /// <summary>
+        /// 发送赞
+        /// </summary>
+        /// <param name="QQID">QQ号</param>
+        /// <returns></returns>
         public static int SendLike(long QQID) => NativeMethods.CQ_sendLike(ac, QQID);
 
+        /// <summary>
+        /// 踢出群成员
+        /// </summary>
+        /// <param name="GroupID">群号</param>
+        /// <param name="QQID">QQ号</param>
+        /// <param name="NeverAllowAgain">不再接收加群申请</param>
+        /// <returns></returns>
         public static int SetGroupKick(long GroupID, long QQID, bool NeverAllowAgain = false) => NativeMethods.CQ_setGroupKick(ac, GroupID, QQID, NeverAllowAgain);
 
+        /// <summary>
+        /// 禁言群成员
+        /// </summary>
+        /// <param name="GroupID">群号</param>
+        /// <param name="QQID">QQ号</param>
+        /// <param name="Seconds">禁言秒数</param>
+        /// <returns></returns>
         public static int SetGroupBan(long GroupID, long QQID, long Seconds) => NativeMethods.CQ_setGroupBan(ac, GroupID, QQID, Seconds);
 
+        /// <summary>
+        /// 设置群管理
+        /// </summary>
+        /// <param name="GroupID">群号</param>
+        /// <param name="QQID">QQ号</param>
+        /// <param name="isAdmin">是否为管理员</param>
+        /// <returns></returns>
         public static int SetGroupAdmin(long GroupID, long QQID, bool isAdmin) => NativeMethods.CQ_setGroupAdmin(ac, GroupID, QQID, isAdmin);
 
+        /// <summary>
+        /// 群全员禁言
+        /// </summary>
+        /// <param name="GroupID">群号</param>
+        /// <param name="isBan">是否禁言状态</param>
+        /// <returns></returns>
         public static int SetGroupWholeBan(long GroupID, bool isBan) => NativeMethods.CQ_setGroupWholeBan(ac, GroupID, isBan);
 
+        /// <summary>
+        /// 禁言匿名成员
+        /// </summary>
+        /// <param name="GroupID">群号</param>
+        /// <param name="AnomymousID">匿名标识</param>
+        /// <param name="Seconds">禁言秒数</param>
+        /// <returns></returns>
         public static int SetGroupAnonymousBan(long GroupID, string AnomymousID, long Seconds) => NativeMethods.CQ_setGroupAnonymousBan(ac, GroupID, AnomymousID, Seconds);
 
+        /// <summary>
+        /// 设置匿名状态
+        /// </summary>
+        /// <param name="GroupID">群号</param>
+        /// <param name="isEnable">是否启用</param>
+        /// <returns></returns>
         public static int SetGroupAnonymous(long GroupID, bool isEnable) => NativeMethods.CQ_setGroupAnonymous(ac, GroupID, isEnable);
 
+        /// <summary>
+        /// 设置群名片
+        /// </summary>
+        /// <param name="GroupID">群号</param>
+        /// <param name="QQID">QQ号</param>
+        /// <param name="NewName">群名片</param>
+        /// <returns></returns>
         public static int SetGroupCard(long GroupID, long QQID, string NewName) => NativeMethods.CQ_setGroupCard(ac, GroupID, QQID, NewName);
 
+        /// <summary>
+        /// 退出群
+        /// </summary>
+        /// <param name="GroupID">群号</param>
+        /// <param name="isDisband">是否解散群</param>
+        /// <returns></returns>
         public static int SetGroupLeave(long GroupID, bool isDisband) => NativeMethods.CQ_setGroupLeave(ac, GroupID, isDisband);
 
+        /// <summary>
+        /// 设置专属头衔
+        /// </summary>
+        /// <param name="GroupID">群号</param>
+        /// <param name="QQID">QQ号</param>
+        /// <param name="Title">头衔 留空取消</param>
+        /// <param name="Seconds">有效秒数</param>
+        /// <returns></returns>
         public static int SetGroupSpecialTitle(long GroupID, long QQID, string Title, long Seconds) => NativeMethods.CQ_setGroupSpecialTitle(ac, GroupID, QQID, Title, Seconds);
 
+        /// <summary>
+        /// 退出讨论组
+        /// </summary>
+        /// <param name="DiscussID">讨论组ID</param>
+        /// <returns></returns>
         public static int SetDiscussLeave(long DiscussID) => NativeMethods.CQ_setDiscussLeave(ac, DiscussID);
 
+        /// <summary>
+        /// 处理加好友请求
+        /// </summary>
+        /// <param name="ResponseFlag">标识</param>
+        /// <param name="Operation">操作</param>
+        /// <param name="Remark">好友备注</param>
+        /// <returns></returns>
         public static int SetFriendAddRequest(string ResponseFlag, Request Operation, string Remark) => NativeMethods.CQ_setFriendAddRequest(ac, ResponseFlag, Operation, Remark);
 
+        /// <summary>
+        /// 处理加群请求
+        /// </summary>
+        /// <param name="ResponseFlag">标识</param>
+        /// <param name="Type">类型</param>
+        /// <param name="Operation">操作</param>
+        /// <param name="Reason">理由</param>
+        /// <returns></returns>
         public static int SetGroupAddRequestV2(string ResponseFlag, Request Type, Request Operation, string Reason) => NativeMethods.CQ_setGroupAddRequestV2(ac, ResponseFlag, Type, Operation, Reason);
 
+        /// <summary>
+        /// 获取群成员信息
+        /// </summary>
+        /// <param name="GroupID">群号</param>
+        /// <param name="QQID">QQ号</param>
+        /// <param name="NoCache">不使用缓存</param>
+        /// <returns></returns>
         public static string GetGroupMemberInfoV2(long GroupID, long QQID, bool NoCache = false) => NativeMethods.CQ_getGroupMemberInfoV2(ac, GroupID, QQID, NoCache);
 
+        /// <summary>
+        /// 获取陌生人信息
+        /// </summary>
+        /// <param name="QQID">QQ号</param>
+        /// <param name="NoCache">不使用缓存</param>
+        /// <returns></returns>
         public static string GetStrangerInfo(long QQID, bool NoCache = false) => NativeMethods.CQ_getStrangerInfo(ac, QQID, NoCache);
 
+        /// <summary>
+        /// 打日志
+        /// </summary>
+        /// <param name="Priority">日志级别</param>
+        /// <param name="Category">分类</param>
+        /// <param name="Content">内容</param>
+        /// <returns></returns>
         public static int AddLog(CQLog Priority, string Category, string Content) => NativeMethods.CQ_addLog(ac, Priority, Category, Content);
 
+        /// <summary>
+        /// 获取 Cookies
+        /// </summary>
+        /// <returns></returns>
         public static string GetCookies() => NativeMethods.CQ_getCookies(ac);
 
+        /// <summary>
+        /// 获取 CSRF Token
+        /// </summary>
+        /// <returns></returns>
         public static int GetCsrfToken() => NativeMethods.CQ_getCsrfToken(ac);
 
+        /// <summary>
+        /// 获取当前登录的 QQ 号
+        /// </summary>
+        /// <returns></returns>
         public static int GetLoginQQ() => NativeMethods.CQ_getLoginQQ(ac);
 
+        /// <summary>
+        /// 获取当前登录的账号昵称
+        /// </summary>
         public static string GetLoginNick => NativeMethods.CQ_getLoginNick(ac);
 
+        /// <summary>
+        /// 获取数据储存文件夹路径
+        /// </summary>
+        /// <returns></returns>
         public static string GetAppDirectory() => NativeMethods.CQ_getAppDirectory(ac);
 
+        /// <summary>
+        /// 丢出严重错误
+        /// </summary>
+        /// <param name="ErrorInfo">错误信息</param>
+        /// <returns></returns>
         public static int SetFatal(string ErrorInfo) => NativeMethods.CQ_setFatal(ac, ErrorInfo);
 
+        /// <summary>
+        /// 获取语音消息文件
+        /// </summary>
+        /// <param name="File">文件ID</param>
+        /// <param name="Format">期望文件格式</param>
+        /// <returns></returns>
         public static string GetRecord(string File, string Format) => NativeMethods.CQ_getRecord(ac, File, Format);
 
 
