@@ -20,9 +20,9 @@
     {
       "id": 6,
       "type": 102,
-      "name": "群成员减少事件处理",
+      "name": "成员退群时自动取消订阅",
       "function": "_eventMemberQuit",
-      "priority": 30000
+      "priority": 10000
     },
     {
       "id": 1001,

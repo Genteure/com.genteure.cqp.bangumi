@@ -170,7 +170,7 @@ namespace com.genteure.cqp.bangumi
         /// <param name="Category">分类</param>
         /// <param name="Content">内容</param>
         /// <returns></returns>
-        public static int AddLog(CQLog Priority, string Category, string Content) => NativeMethods.CQ_addLog(ac, Priority, Category, Content);
+        public static int AddLog(LogLevel Priority, string Category, string Content) => NativeMethods.CQ_addLog(ac, Priority, Category, Content);
 
         /// <summary>
         /// 获取 Cookies
@@ -220,7 +220,7 @@ namespace com.genteure.cqp.bangumi
         private static class NativeMethods
         {
             [DllExport("AppInfo")]
-            public static string AppInfo() => "9," + Bangumi.AppID;
+            public static string AppInfo() => "9," + Main.AppID;
 
             [DllExport("Initialize", CallingConvention.StdCall)]
             public static int Initialize(int i) => ac = i;
@@ -281,7 +281,7 @@ namespace com.genteure.cqp.bangumi
             public static extern string CQ_getStrangerInfo(int AuthCode, long QQID, bool NoCache);
 
             [DllImport("CQP.DLL")]
-            public static extern int CQ_addLog(int AuthCode, CQLog Priority, string Category, string Content);
+            public static extern int CQ_addLog(int AuthCode, LogLevel Priority, string Category, string Content);
 
             [DllImport("CQP.DLL")]
             public static extern string CQ_getCookies(int AuthCode);
@@ -365,7 +365,7 @@ namespace com.genteure.cqp.bangumi
         /// <summary>
         /// 酷Q日志记录等级
         /// </summary>
-        internal enum CQLog : Int32
+        internal enum LogLevel : Int32
         {
             /// <summary>
             /// 调试 灰色
