@@ -10,6 +10,75 @@ namespace com.genteure.cqp.bangumi
         const string AppID = "com.genteure.cqp.bangumi";
         private static int ac;
 
+        /// <summary>
+        /// 发送私聊消息
+        /// </summary>
+        /// <param name="QQID">QQ号</param>
+        /// <param name="Message">消息内容</param>
+        /// <returns></returns>
+        public static int SendPrivateMsg(long QQID, string Message) => NativeMethods.CQ_sendPrivateMsg(ac, QQID, Message);
+
+        /// <summary>
+        /// 发送群聊消息
+        /// </summary>
+        /// <param name="GroupID">群号</param>
+        /// <param name="Message">消息内容</param>
+        /// <returns></returns>
+        public static int SendGroupMsg(long GroupID, string Message) => NativeMethods.CQ_sendGroupMsg(ac, GroupID, Message);
+
+        /// <summary>
+        /// 发送讨论组消息
+        /// </summary>
+        /// <param name="DiscussID">讨论组ID</param>
+        /// <param name="Message">消息内容</param>
+        /// <returns></returns>
+        public static int SendDiscussMsg(long DiscussID, string Message) => NativeMethods.CQ_sendDiscussMsg(ac, DiscussID, Message);
+
+        public static int SendLike(long QQID) => NativeMethods.CQ_sendLike(ac, QQID);
+
+        public static int SetGroupKick(long GroupID, long QQID, bool NeverAllowAgain = false) => NativeMethods.CQ_setGroupKick(ac, GroupID, QQID, NeverAllowAgain);
+
+        public static int SetGroupBan(long GroupID, long QQID, long Seconds) => NativeMethods.CQ_setGroupBan(ac, GroupID, QQID, Seconds);
+
+        public static int SetGroupAdmin(long GroupID, long QQID, bool isAdmin) => NativeMethods.CQ_setGroupAdmin(ac, GroupID, QQID, isAdmin);
+
+        public static int SetGroupWholeBan(long GroupID, bool isBan) => NativeMethods.CQ_setGroupWholeBan(ac, GroupID, isBan);
+
+        public static int SetGroupAnonymousBan(long GroupID, string AnomymousID, long Seconds) => NativeMethods.CQ_setGroupAnonymousBan(ac, GroupID, AnomymousID, Seconds);
+
+        public static int SetGroupAnonymous(long GroupID, bool isEnable) => NativeMethods.CQ_setGroupAnonymous(ac, GroupID, isEnable);
+
+        public static int SetGroupCard(long GroupID, long QQID, string NewName) => NativeMethods.CQ_setGroupCard(ac, GroupID, QQID, NewName);
+
+        public static int SetGroupLeave(long GroupID, bool isDisband) => NativeMethods.CQ_setGroupLeave(ac, GroupID, isDisband);
+
+        public static int SetGroupSpecialTitle(long GroupID, long QQID, string Title, long Seconds) => NativeMethods.CQ_setGroupSpecialTitle(ac, GroupID, QQID, Title, Seconds);
+
+        public static int SetDiscussLeave(long DiscussID) => NativeMethods.CQ_setDiscussLeave(ac, DiscussID);
+
+        public static int SetFriendAddRequest(string ResponseFlag, Request Operation, string Remark) => NativeMethods.CQ_setFriendAddRequest(ac, ResponseFlag, Operation, Remark);
+
+        public static int SetGroupAddRequestV2(string ResponseFlag, Request Type, Request Operation, string Reason) => NativeMethods.CQ_setGroupAddRequestV2(ac, ResponseFlag, Type, Operation, Reason);
+
+        public static string GetGroupMemberInfoV2(long GroupID, long QQID, bool NoCache = false) => NativeMethods.CQ_getGroupMemberInfoV2(ac, GroupID, QQID, NoCache);
+
+        public static string GetStrangerInfo(long QQID, bool NoCache = false) => NativeMethods.CQ_getStrangerInfo(ac, QQID, NoCache);
+
+        public static int AddLog(CQLog Priority, string Category, string Content) => NativeMethods.CQ_addLog(ac, Priority, Category, Content);
+
+        public static string GetCookies() => NativeMethods.CQ_getCookies(ac);
+
+        public static int GetCsrfToken() => NativeMethods.CQ_getCsrfToken(ac);
+
+        public static int GetLoginQQ() => NativeMethods.CQ_getLoginQQ(ac);
+
+        public static string GetLoginNick => NativeMethods.CQ_getLoginNick(ac);
+
+        public static string GetAppDirectory() => NativeMethods.CQ_getAppDirectory(ac);
+
+        public static int SetFatal(string ErrorInfo) => NativeMethods.CQ_setFatal(ac, ErrorInfo);
+
+        public static string GetRecord(string File, string Format) => NativeMethods.CQ_getRecord(ac, File, Format);
 
 
         private static class NativeMethods
