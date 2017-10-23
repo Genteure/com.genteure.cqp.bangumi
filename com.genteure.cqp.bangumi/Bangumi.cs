@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using FluentScheduler;
 using System;
+using System.Text;
 
 namespace com.genteure.cqp.bangumi
 {
@@ -27,7 +28,11 @@ namespace com.genteure.cqp.bangumi
 
         public void Execute()
         {
-            throw new NotImplementedException();
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("【番】【{0}】更新啦！", title);
+            sb.AppendFormat("{0} 更新时间：{1}", pub_index, pub_time);
+            sb.AppendFormat("https://bangumi.bilibili.com/anime/{0}/play#{1}", season_id, ep_id);
+            CoolQApi.SendPrivateMsg(Main.MasterQQ, sb.ToString());
         }
 
         public string cover { get; set; }

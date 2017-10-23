@@ -16,6 +16,7 @@ namespace com.genteure.cqp.bangumi
         private const string FETCH_AM = "FetchBangumiData-AM";
         private const string FETCH_PM = "FetchBangumiData-PM";
         private const string FETCH_RETRY = "FetchBangumiData-Retry";
+        private const string BANGUMI_NAME = "Bangumi";
         private const int TRY_INTERVAL_MINUTES = 5;
 
         public MyRegistry()
@@ -53,18 +54,30 @@ namespace com.genteure.cqp.bangumi
         {
             try
             {
+                // 下载解析数据
                 string strdata = await GetBangumiAsync();
                 JObject jo = JObject.Parse(strdata);
 
+                // 检查是否成功
                 if (jo["code"].ToObject<int>() != 0 || jo["message"].ToObject<string>() != "success")
                     throw new Exception($"Bangumi Server Error: code{jo["code"].ToObject<int>()}:, message:{jo["message"].ToObject<string>()}");
 
+                // 将所有番剧数据收集起来
                 List<Bangumi> blist = new List<Bangumi>();
-
                 foreach (JObject day in jo["result"] as JArray)
                     foreach (JObject bangumi in day["seasons"] as JArray)
                         blist.Add(new Bangumi(bangumi));
 
+                // 删除所有旧的番剧定时任务
+                JobManager.RemoveJob(BANGUMI_NAME);
+
+                // 过滤出 还未发布 并且 发布时间距离当前时间不到13小时 的番剧
+                DateTime before = DateTime.UtcNow + new TimeSpan(13, 0, 0);
+                blist.Where(x => x.is_published == 0 && x.pub_ts_datetime < before).ToList().ForEach(x =>
+                {
+                    // 计划定时任务
+                    Schedule(x).WithName(BANGUMI_NAME).ToRunOnceAt(x.pub_ts_datetime);
+                });
             }
             catch (Exception)
             {
@@ -86,8 +99,6 @@ namespace com.genteure.cqp.bangumi
             var responseString = new StreamReader(response.GetResponseStream(), Encoding.UTF8).ReadToEnd();
             return responseString;
         }
-
-        private readonly DateTime HALF_DAY = new DateTime(0, 0, 0, 12, 0, 0); // TODO: Change this
 
     }
 }

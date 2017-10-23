@@ -15,7 +15,6 @@ namespace com.genteure.cqp.bangumi
         public const int MasterQQ = 244827448;
 
         private static SQLiteAsyncConnection db;
-        private static Registry registry;
 
 
         /// <summary>
@@ -26,8 +25,9 @@ namespace com.genteure.cqp.bangumi
         internal static CoolQApi.Event Startup()
         {
             JobManager.UseUtcTime();
-            registry = new Registry();
-            db = new SQLiteAsyncConnection("TODO");
+            JobManager.Initialize(new MyRegistry());
+            CoolQApi.AddLog(CoolQApi.LogLevel.Debug, "任务", "初始化");
+            // db = new SQLiteAsyncConnection("TODO");
             // TODO: 初始化计时器系统 刷新番剧数据
             return CoolQApi.Event.Ignore;
         }

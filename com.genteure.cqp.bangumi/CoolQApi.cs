@@ -223,7 +223,7 @@ namespace com.genteure.cqp.bangumi
             public static string AppInfo() => "9," + Main.AppID;
 
             [DllExport("Initialize", CallingConvention.StdCall)]
-            public static int Initialize(int i) => ac = i;
+            public static int Initialize(int i) { ac = i; return 0; }
 
 
             [DllImport("CQP.DLL")]
