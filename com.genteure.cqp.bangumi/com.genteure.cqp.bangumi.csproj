@@ -77,8 +77,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bangumi.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="CoolQApi.cs" />
+    <Compile Include="MyRegistry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Subscriber.cs" />
   </ItemGroup>
