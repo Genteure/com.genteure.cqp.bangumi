@@ -3,6 +3,7 @@ using SQLite;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace com.genteure.cqp.bangumi
 {
@@ -65,7 +66,14 @@ namespace com.genteure.cqp.bangumi
         /// <param name="font">字体ID？</param>
         /// <returns></returns>
         [DllExport("_eventGroupMsg", CallingConvention.StdCall)]
-        internal static async System.Threading.Tasks.Task<CoolQApi.Event> ProcessGroupMessageAsync(int subType, int sendTime, long fromGroup,
+        internal static CoolQApi.Event ProcessGroupMessageAsync(int subType, int sendTime, long fromGroup,
+            long fromQQ, string fromAnonymous, string msg, int font)
+        {
+            var result = _ProcessGroupMessageAsync(subType, sendTime, fromGroup, fromQQ, fromAnonymous, msg, font);
+            result.Wait();
+            return result.Result;
+        }
+        private static async Task<CoolQApi.Event> _ProcessGroupMessageAsync(int subType, int sendTime, long fromGroup,
             long fromQQ, string fromAnonymous, string msg, int font)
         {
             if (fromQQ == 80000000 || fromAnonymous != string.Empty) return CoolQApi.Event.Ignore; // 发送人为匿名
@@ -165,8 +173,18 @@ namespace com.genteure.cqp.bangumi
         /// <param name="target">被操作QQ</param>
         /// <returns></returns>
         [DllExport("_eventMemberQuit", CallingConvention.StdCall)]
-        internal static CoolQApi.Event ProcessMemberQuit(int subType, int sendTime, long fromGroup, long fromQQ, long target)
+        internal static CoolQApi.Event ProcessMemberQuitAsync(int subType, int sendTime, long fromGroup, long fromQQ, long target)
         {
+            var result = _ProcessMemberQuitAsync(subType, sendTime, fromGroup, fromQQ, target);
+            result.Wait();
+            return result.Result;
+        }
+        private static async Task<CoolQApi.Event> _ProcessMemberQuitAsync(int subType, int sendTime, long fromGroup, long fromQQ, long target)
+        {
+            if (subType != 3)
+                (await db.Table<Subscriber>().Where(x => x.QQID == target)
+                    .Where(x => x.GroupID == fromGroup).ToListAsync())
+                    .ForEach(async x => await db.DeleteAsync(x));
             return CoolQApi.Event.Ignore;
         }
 
