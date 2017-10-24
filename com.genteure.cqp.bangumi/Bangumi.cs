@@ -2,6 +2,9 @@
 using FluentScheduler;
 using System;
 using System.Text;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace com.genteure.cqp.bangumi
 {
@@ -26,17 +29,27 @@ namespace com.genteure.cqp.bangumi
             pub_ts_datetime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(pub_ts);
         }
 
-        public void Execute()
+        async void IJob.Execute()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("【番】【{0}】更新啦！\n", title);
+            sb.AppendFormat("【{0}】更新啦！\n", title);
             sb.AppendFormat("{0} 更新时间：{1}\n", pub_index, pub_time);
-            sb.AppendFormat("https://bangumi.bilibili.com/anime/{0}/play#{1} \n", season_id, ep_id);
-            sb.Append("\n注：这是一个还在开发中的半成品插件——宅急送队长");
+            sb.AppendFormat("https://bangumi.bilibili.com/anime/{0}/play#{1} ", season_id, ep_id);
+            //sb.Append("\n注：这是一个还在开发中的半成品插件——宅急送队长");
+
+            var list = (await Main.db.Table<Subscriber>().Where(x => x.BangumiID == season_id).ToListAsync()).GroupBy(x => x.GroupID, x => x.QQID);
+            foreach (var group in list)
+            {
+                string at = string.Empty;
+                foreach (var qq in group)
+                    at += CoolQApi.CQC_At(qq);
+                CoolQApi.SendGroupMsg(group.Key, sb.ToString() + "\n\n" + at);
+            }
+
             // CoolQApi.SendPrivateMsg(Main.MasterQQ, sb.ToString());
-            long[] g = { 627565437, 95349372, 423768065, 549858724 };
-            foreach (var q in g)
-                CoolQApi.SendGroupMsg(q, sb.ToString());
+            // long[] g = { 627565437, 95349372, 423768065, 549858724 };
+            // foreach (var q in g)
+            //    CoolQApi.SendGroupMsg(q, sb.ToString());
         }
 
         public string cover { get; set; }

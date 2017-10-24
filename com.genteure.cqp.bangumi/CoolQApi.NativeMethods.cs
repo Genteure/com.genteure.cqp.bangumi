@@ -7,7 +7,7 @@ namespace com.genteure.cqp.bangumi
         private static class NativeMethods
         {
             [DllExport("AppInfo")]
-            public static string AppInfo() => "9," + Main.AppID;
+            public static string AppInfo() => "9," + Main.APP_ID;
 
             [DllExport("Initialize", CallingConvention.StdCall)]
             public static int Initialize(int i) { ac = i; return 0; }

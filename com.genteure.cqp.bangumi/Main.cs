@@ -1,20 +1,25 @@
 ﻿using FluentScheduler;
 using SQLite;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace com.genteure.cqp.bangumi
 {
     internal static class Main
     {
-        public const string AppID = "com.genteure.cqp.bangumi";
-        public const int MasterQQ = 244827448;
+        internal const string APP_ID = "com.genteure.cqp.bangumi";
+        internal const int MASTER_QQ = 244827448;
+        internal const string DATABASE_FILE_NAME = "db.db";
 
-        private static SQLiteAsyncConnection db;
+        internal const string COMMAND_NAME1 = ".追番";
+        internal const string COMMAND_NAME2 = ".bangumi";
+
+        internal const string NO_BANGUMI_ID = "你没写番剧ID！";
+        internal const string BANGUMI_ID_NOT_NUMBER = "番剧ID是整数数字！";
+
+        internal static SQLiteAsyncConnection db;
+
 
 
         /// <summary>
@@ -24,12 +29,14 @@ namespace com.genteure.cqp.bangumi
         [DllExport("_eventStartup", CallingConvention.StdCall)]
         internal static CoolQApi.Event Startup()
         {
-            JobManager.JobException += x => CoolQApi.SendPrivateMsg(MasterQQ, x.Name + x.Exception.ToString());
             JobManager.UseUtcTime();
-            JobManager.Initialize(new MyRegistry());
+            JobManager.JobException += x => CoolQApi.SendPrivateMsg(MASTER_QQ, x.Name + x.Exception.ToString());
 
-            // db = new SQLiteAsyncConnection("TODO");
-            // TODO: 初始化计时器系统 刷新番剧数据
+            db = new SQLiteAsyncConnection(CoolQApi.GetAppDirectory() + DATABASE_FILE_NAME,
+                SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.FullMutex);
+            db.CreateTableAsync<Subscriber>();
+
+            JobManager.Initialize(new MyRegistry());
             return CoolQApi.Event.Ignore;
         }
 
@@ -58,13 +65,95 @@ namespace com.genteure.cqp.bangumi
         /// <param name="font">字体ID？</param>
         /// <returns></returns>
         [DllExport("_eventGroupMsg", CallingConvention.StdCall)]
-        internal static CoolQApi.Event ProcessGroupMessage(int subType, int sendTime, long fromGroup,
+        internal static async System.Threading.Tasks.Task<CoolQApi.Event> ProcessGroupMessageAsync(int subType, int sendTime, long fromGroup,
             long fromQQ, string fromAnonymous, string msg, int font)
         {
-            if (fromQQ == 80000000) return CoolQApi.Event.Ignore; // 发送人为匿名
+            if (fromQQ == 80000000 || fromAnonymous != string.Empty) return CoolQApi.Event.Ignore; // 发送人为匿名
 
-            return CoolQApi.Event.Ignore;
+            var cmd = new List<string>(msg.Split(' '));
+            string reply = string.Empty;
+            // 非追番命令
+            if (cmd[0] != COMMAND_NAME1 && cmd[0] != COMMAND_NAME2)
+                return CoolQApi.Event.Ignore;
+            // 没有子命令
+            if (cmd.Count < 2)
+                cmd.Add("help");
+            int bid = cmd.Count >= 3 ? int.TryParse(cmd[2], out int tmp) ? tmp : 0 : -1;
+            switch (cmd[1].ToLower())
+            {
+                case "订阅":
+                case "add":
+                case "sub":
+                    switch (bid)
+                    {
+                        case -1:
+                            reply = NO_BANGUMI_ID;
+                            break;
+                        case 0:
+                            reply = BANGUMI_ID_NOT_NUMBER;
+                            break;
+                        default:
+                            if (await db.Table<Subscriber>().Where(x => x.QQID == fromQQ).Where(x => x.GroupID == x.GroupID).Where(x => x.BangumiID == bid).CountAsync() != 0)
+                                reply = "你已经订阅过这部番了！";
+                            else
+                            {
+                                await db.InsertAsync(new Subscriber() { BangumiID = bid, GroupID = fromGroup, QQID = fromQQ });
+                                reply = $"订阅 {bid} 成功！";
+                            }
+                            break;
+                    }
+                    break;
+                case "取消订阅":
+                case "remove":
+                case "unsub":
+                    switch (bid)
+                    {
+                        case -1:
+                            reply = NO_BANGUMI_ID;
+                            break;
+                        case 0:
+                            reply = BANGUMI_ID_NOT_NUMBER;
+                            break;
+                        default:
+                            Subscriber sub = await db.Table<Subscriber>().Where(x => x.QQID == fromQQ).Where(x => x.GroupID == x.GroupID).Where(x => x.BangumiID == bid).FirstOrDefaultAsync();
+                            if (sub != null)
+                            {
+                                await db.DeleteAsync(sub);
+                                reply = "取消订阅成功！";
+                            }
+                            else
+                                reply = "你本来就没订阅这部番！";
+                            break;
+                    }
+                    break;
+                case "我的订阅":
+                case "list":
+                    var list = await db.Table<Subscriber>().Where(x => x.QQID == fromQQ).Where(x => x.GroupID == fromGroup).ToListAsync();
+                    reply = $"你在此群订阅了 {list.Count} 部番";
+                    list.ForEach(x => reply += "\n" + x.BangumiID);
+                    break;
+                default:
+                case "帮助":
+                case "help":
+                    reply = helpmsg;
+                    break;
+                case "debug.task":
+                    if (fromQQ != MASTER_QQ)
+                    { reply = "没有权限"; }
+                    else
+                    {
+                        reply = "[调试信息]当前排队任务：";
+                        JobManager.AllSchedules.ToList().ForEach(x => reply += "\n[" + x.Name + "]下次运行" + x.NextRun.ToLocalTime().ToString());
+                    }
+                    break;
+            }
+            if (reply != string.Empty)
+                CoolQApi.SendGroupMsg(fromGroup, CoolQApi.CQC_At(fromQQ) + "\n" + reply);
+            return CoolQApi.Event.Block;
         }
+        private const string helpmsg = "追番系统\n\n主命令 " + COMMAND_NAME1 + " 或 " + COMMAND_NAME2 +
+            "\n\n订阅/add/sub 番剧ID\n  订阅番剧\n取消订阅/remove/unsub 番剧ID\n  取消订阅番剧\n" +
+            "我的订阅/list\n  列出已经订阅的番剧\n帮助/help\n  获取此帮助信息";
 
         /// <summary>
         /// 成员退群

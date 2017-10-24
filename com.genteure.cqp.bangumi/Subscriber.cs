@@ -1,14 +1,16 @@
 ﻿using SQLite;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace com.genteure.cqp.bangumi
 {
     public class Subscriber
     {
+        /**
+         *
+         * 番剧ID为0时QQ号一定为0
+         * 代表全群的提前预告推送
+         * 
+         * */
+
         /// <summary>
         /// ID
         /// </summary>
