@@ -1,14 +1,77 @@
 ﻿using System;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace com.genteure.cqp.bangumi
 {
-    internal static class CoolQApi
+    internal static partial class CoolQApi
     {
-
         private static int ac;
+
+
+        #region - Tools  -
+
+        public static string Encode(string str, bool comma = true)
+            => comma ?
+                str.Replace("&", "&amp;").Replace("[", "&#91;").Replace("]", "&#93;").Replace(",", "&#44;") :
+                str.Replace("&", "&amp;").Replace("[", "&#91;").Replace("]", "&#93;");
+        public static string Decode(string str)
+            => str.Replace("&amp;", "&").Replace("&#91;", "[").Replace("&#93;", "]").Replace("&#44", ",");
+
+        public static string CQC_At(long QQID)
+            => $@"[CQ:at,qq={(QQID == -1 ? "all" : QQID.ToString())}]";
+
+        public static string CQC_Emoji(long ID)
+            => $@"[CQ:emoji,id={ID}]";
+
+        public static string CQC_Face(long ID)
+            => $@"[CQ:face,id={ID}]";
+
+        public static string CQC_BFace(long ID)
+            => $@"[CQ:bface,id={ID}]";
+
+        public static string CQC_Shake()
+            => $@"[CQ:shake]";
+
+        public static string CQC_Record(string file, bool magic)
+            => $@"[CQ:record,file={Encode(file)}{(magic ? ",magic=true" : "")}]";
+
+        public static string CQC_RPS(int ID)
+            => $@"[CQ:rps,id={ID}]";
+
+        public static string CQC_Dice(int ID)
+            => $@"[CQ:dice,id={ID}]";
+
+        public static string CQC_Share(string url, string title, string content, string image)
+            => $@"[CQ:share,url={Encode(url)},title={Encode(title)},content={Encode(content)},image={Encode(image)}]";
+
+        public static string CQC_Contact(string type, long ID)
+            => $@"[CQ:contact,type={type},id={ID}]";
+
+        public static string CQC_Anonymous(bool force = true)
+            => $@"[CQ:anonymous{(force ? "" : "ignore")}]";
+
+        public static string CQC_Image(string file)
+            => $@"[CQ:image,file={Encode(file)}]";
+
+        public static string CQC_Music(string source, long musicID, bool newstyle = true)
+            => $@"[CQ:music.type={source},id={musicID}{(newstyle ? ",style=1" : "")}]";
+
+        public static string CQC_MusicCustom(string url, string audio, string title, string content, string image)
+            => $@"[CQ:music,type=custom,url={Encode(url)},audio={Encode(audio)}" +
+            (title == "" ? "" : ",title=" + Encode(title)) +
+            (content == "" ? "" : ",content=" + Encode(content)) +
+            (image == "" ? "" : ",image=" + Encode(image)) +
+            "]";
+
+        public static string CQC_Location(float latitude, float longitude, long zoom, string title, string address)
+            => $@"[CQ:location,lat={latitude},lon={longitude}" +
+            (zoom > 0 ? ",zoom=" + zoom : "") +
+            $@",title={Encode(title)},content={Encode(address)}]";
+
+        #endregion
+
+        #region - API -
 
         /// <summary>
         /// 发送私聊消息
@@ -193,7 +256,7 @@ namespace com.genteure.cqp.bangumi
         /// <summary>
         /// 获取当前登录的账号昵称
         /// </summary>
-        public static string GetLoginNick => NativeMethods.CQ_getLoginNick(ac);
+        public static string GetLoginNick() => NativeMethods.CQ_getLoginNick(ac);
 
         /// <summary>
         /// 获取数据储存文件夹路径
@@ -216,98 +279,7 @@ namespace com.genteure.cqp.bangumi
         /// <returns></returns>
         public static string GetRecord(string File, string Format) => NativeMethods.CQ_getRecord(ac, File, Format);
 
-
-        private static class NativeMethods
-        {
-            [DllExport("AppInfo")]
-            public static string AppInfo() => "9," + Main.AppID;
-
-            [DllExport("Initialize", CallingConvention.StdCall)]
-            public static int Initialize(int i) { ac = i; return 0; }
-
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_sendPrivateMsg(int AuthCode, long QQID, string Message);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_sendGroupMsg(int AuthCode, long GroupID, string Message);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_sendDiscussMsg(int AuthCode, long DiscussID, string Message);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_sendLike(int AuthCode, long QQID);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_setGroupKick(int AuthCode, long GroupID, long QQID, bool NeverAllowAgain = false);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_setGroupBan(int AuthCode, long GroupID, long QQID, long Seconds);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_setGroupAdmin(int AuthCode, long GroupID, long QQID, bool isAdmin);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_setGroupWholeBan(int AuthCode, long GroupID, bool isBan);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_setGroupAnonymousBan(int AuthCode, long GroupID, string AnomymousID, long Seconds);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_setGroupAnonymous(int AuthCode, long GroupID, bool isEnable);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_setGroupCard(int AuthCode, long GroupID, long QQID, string NewName);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_setGroupLeave(int AuthCode, long GroupID, bool isDisband);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_setGroupSpecialTitle(int AuthCode, long GroupID, long QQID, string Title, long Seconds);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_setDiscussLeave(int AuthCode, long DiscussID);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_setFriendAddRequest(int AuthCode, string ResponseFlag, Request Operation, string Remark);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_setGroupAddRequestV2(int AuthCode, string ResponseFlag, Request Type, Request Operation, string Reason);
-
-            [DllImport("CQP.DLL")]
-            public static extern string CQ_getGroupMemberInfoV2(int AuthCode, long GroupID, long QQID, bool NoCache);
-
-            [DllImport("CQP.DLL")]
-            public static extern string CQ_getStrangerInfo(int AuthCode, long QQID, bool NoCache);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_addLog(int AuthCode, LogLevel Priority, string Category, string Content);
-
-            [DllImport("CQP.DLL")]
-            public static extern string CQ_getCookies(int AuthCode);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_getCsrfToken(int AuthCode);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_getLoginQQ(int AuthCode);
-
-            [DllImport("CQP.DLL")]
-            public static extern string CQ_getLoginNick(int AuthCode);
-
-            [DllImport("CQP.DLL")]
-            public static extern string CQ_getAppDirectory(int AuthCode);
-
-            [DllImport("CQP.DLL")]
-            public static extern int CQ_setFatal(int AuthCode, string ErrorInfo);
-
-            [DllImport("CQP.DLL")]
-            public static extern string CQ_getRecord(int AuthCode, string File, string Format);
-
-            // [DllImport("CQP.DLL")]
-            // public static extern int CQ______________(int AuthCode, long someshit);
-
-        }
+        #endregion
 
         /// <summary>
         /// 语音消息音频格式

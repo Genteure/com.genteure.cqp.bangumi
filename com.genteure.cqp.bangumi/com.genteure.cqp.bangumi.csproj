@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bangumi.cs" />
+    <Compile Include="CoolQApi.NativeMethods.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="CoolQApi.cs" />
     <Compile Include="MyRegistry.cs" />
