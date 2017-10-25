@@ -1,5 +1,6 @@
 ﻿using FluentScheduler;
 using SQLite;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -66,12 +67,20 @@ namespace com.genteure.cqp.bangumi
         /// <param name="font">字体ID？</param>
         /// <returns></returns>
         [DllExport("_eventGroupMsg", CallingConvention.StdCall)]
-        internal static CoolQApi.Event ProcessGroupMessageAsync(int subType, int sendTime, long fromGroup,
+        public static CoolQApi.Event ProcessGroupMessageAsync(int subType, int sendTime, long fromGroup,
             long fromQQ, string fromAnonymous, string msg, int font)
         {
-            var result = _ProcessGroupMessageAsync(subType, sendTime, fromGroup, fromQQ, fromAnonymous, msg, font);
-            result.Wait();
-            return result.Result;
+            try
+            {
+                var result = _ProcessGroupMessageAsync(subType, sendTime, fromGroup, fromQQ, fromAnonymous, msg, font);
+                result.Wait();
+                return result.Result;
+            }
+            catch (Exception ex)
+            {
+                CoolQApi.SendPrivateMsg(MASTER_QQ, ex.ToString());
+                return CoolQApi.Event.Ignore;
+            }
         }
         private static async Task<CoolQApi.Event> _ProcessGroupMessageAsync(int subType, int sendTime, long fromGroup,
             long fromQQ, string fromAnonymous, string msg, int font)
@@ -101,7 +110,7 @@ namespace com.genteure.cqp.bangumi
                             reply = BANGUMI_ID_NOT_NUMBER;
                             break;
                         default:
-                            if (await db.Table<Subscriber>().Where(x => x.QQID == fromQQ).Where(x => x.GroupID == x.GroupID).Where(x => x.BangumiID == bid).CountAsync() != 0)
+                            if (await db.Table<Subscriber>().Where(x => x.QQID == fromQQ).Where(x => x.GroupID == fromGroup).Where(x => x.BangumiID == bid).CountAsync() != 0)
                                 reply = "你已经订阅过这部番了！";
                             else
                             {
@@ -173,11 +182,19 @@ namespace com.genteure.cqp.bangumi
         /// <param name="target">被操作QQ</param>
         /// <returns></returns>
         [DllExport("_eventMemberQuit", CallingConvention.StdCall)]
-        internal static CoolQApi.Event ProcessMemberQuitAsync(int subType, int sendTime, long fromGroup, long fromQQ, long target)
+        public static CoolQApi.Event ProcessMemberQuitAsync(int subType, int sendTime, long fromGroup, long fromQQ, long target)
         {
-            var result = _ProcessMemberQuitAsync(subType, sendTime, fromGroup, fromQQ, target);
-            result.Wait();
-            return result.Result;
+            try
+            {
+                var result = _ProcessMemberQuitAsync(subType, sendTime, fromGroup, fromQQ, target);
+                result.Wait();
+                return result.Result;
+            }
+            catch (Exception ex)
+            {
+                CoolQApi.SendPrivateMsg(MASTER_QQ, ex.ToString());
+                return CoolQApi.Event.Ignore;
+            }
         }
         private static async Task<CoolQApi.Event> _ProcessMemberQuitAsync(int subType, int sendTime, long fromGroup, long fromQQ, long target)
         {
