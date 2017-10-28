@@ -119,7 +119,7 @@ namespace com.genteure.cqp.bangumi
                         default:
                             if (!BangumiName.ContainsKey(bid))
                                 reply = "番剧不存在或不可订阅";
-                            if (await db.Table<Subscriber>().Where(x => x.QQID == fromQQ).Where(x => x.GroupID == fromGroup).Where(x => x.BangumiID == bid).CountAsync() != 0)
+                            else if (await db.Table<Subscriber>().Where(x => x.QQID == fromQQ).Where(x => x.GroupID == fromGroup).Where(x => x.BangumiID == bid).CountAsync() != 0)
                                 reply = "你已经订阅过这部番了！";
                             else
                             {
