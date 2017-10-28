@@ -48,7 +48,7 @@ namespace com.genteure.cqp.bangumi
         }
 
         /// <summary>
-        /// 下载处理最近12小时的番剧数据
+        /// 下载处理番剧数据
         /// </summary>
         private async void FetchAndUpdateBangumiData()
         {
@@ -68,10 +68,13 @@ namespace com.genteure.cqp.bangumi
                     foreach (JObject bangumi in day["seasons"] as JArray)
                         blist.Add(new Bangumi(bangumi));
 
+                // 保存获取到的所有番名
+                blist.ForEach(x => Main.BangumiName[x.season_id] = x.title);
+
                 // 删除所有旧的番剧定时任务
                 JobManager.RemoveJob(BANGUMI_NAME);
 
-                // 过滤出 还未发布 并且 发布时间距离当前时间不到13小时 的番剧
+                // 过滤出 (还未发布) 并且 (发布时间距离当前时间不到13小时) 的番剧
                 DateTime before = DateTime.UtcNow + new TimeSpan(13, 0, 0);
                 blist.Where(x => x.is_published == 0 && x.pub_ts_datetime < before).ToList().ForEach(x =>
                 {

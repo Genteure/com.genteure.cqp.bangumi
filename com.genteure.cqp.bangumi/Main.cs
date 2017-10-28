@@ -20,8 +20,15 @@ namespace com.genteure.cqp.bangumi
         internal const string NO_BANGUMI_ID = "你没写番剧ID！";
         internal const string BANGUMI_ID_NOT_NUMBER = "番剧ID是整数数字！";
 
+        /// <summary>
+        /// 数据库连接
+        /// </summary>
         internal static SQLiteAsyncConnection db;
 
+        /// <summary>
+        /// 储存所有番剧ID和名字的对应
+        /// </summary>
+        internal static Dictionary<int, string> BangumiName = new Dictionary<int, string>();
 
 
         /// <summary>
@@ -110,12 +117,14 @@ namespace com.genteure.cqp.bangumi
                             reply = BANGUMI_ID_NOT_NUMBER;
                             break;
                         default:
+                            if (!BangumiName.ContainsKey(bid))
+                                reply = "番剧不存在或不可订阅";
                             if (await db.Table<Subscriber>().Where(x => x.QQID == fromQQ).Where(x => x.GroupID == fromGroup).Where(x => x.BangumiID == bid).CountAsync() != 0)
                                 reply = "你已经订阅过这部番了！";
                             else
                             {
                                 await db.InsertAsync(new Subscriber() { BangumiID = bid, GroupID = fromGroup, QQID = fromQQ });
-                                reply = $"订阅 {bid} 成功！";
+                                reply = $"订阅 {bid}{(BangumiName.TryGetValue(bid, out string name) ? " - " + name : "")} 成功！";
                             }
                             break;
                     }
@@ -136,7 +145,7 @@ namespace com.genteure.cqp.bangumi
                             if (sub != null)
                             {
                                 await db.DeleteAsync(sub);
-                                reply = "取消订阅成功！";
+                                reply = $"取消订阅{(BangumiName.TryGetValue(bid, out string name) ? $"[{name}]" : "")}成功！";
                             }
                             else
                                 reply = "你本来就没订阅这部番！";
@@ -147,7 +156,7 @@ namespace com.genteure.cqp.bangumi
                 case "list":
                     var list = await db.Table<Subscriber>().Where(x => x.QQID == fromQQ).Where(x => x.GroupID == fromGroup).ToListAsync();
                     reply = $"你在此群订阅了 {list.Count} 部番";
-                    list.ForEach(x => reply += "\n" + x.BangumiID);
+                    list.ForEach(x => reply += "\n" + x.BangumiID + (BangumiName.TryGetValue(x.BangumiID, out string name) ? " - " + name : ""));
                     break;
                 default:
                 case "帮助":
@@ -161,6 +170,15 @@ namespace com.genteure.cqp.bangumi
                     {
                         reply = "[调试信息]当前排队任务：";
                         JobManager.AllSchedules.ToList().ForEach(x => reply += "\n[" + x.Name + "]下次运行" + x.NextRun.ToLocalTime().ToString());
+                    }
+                    break;
+                case "debug.names":
+                    if (fromQQ != MASTER_QQ)
+                    { reply = "没有权限"; }
+                    else
+                    {
+                        reply = "[调试信息]储存的番剧列表：";
+                        BangumiName.ToList().ForEach(x => reply += "\n[" + x.Key + "]" + x.Value);
                     }
                     break;
             }
