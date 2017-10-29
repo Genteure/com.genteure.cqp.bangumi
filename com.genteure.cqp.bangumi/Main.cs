@@ -2,6 +2,7 @@
 using SQLite;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ namespace com.genteure.cqp.bangumi
         internal const string APP_ID = "com.genteure.cqp.bangumi";
         internal const int MASTER_QQ = 244827448;
         internal const string DATABASE_FILE_NAME = "db.db";
+        internal const string HELPMSG_FILE_NAME = "helpmsg.txt";
 
         internal const string COMMAND_NAME1 = ".追番";
         internal const string COMMAND_NAME2 = ".bangumi";
@@ -31,6 +33,8 @@ namespace com.genteure.cqp.bangumi
         internal static Dictionary<int, string> BangumiName = new Dictionary<int, string>();
 
 
+        internal static MyRegistry myRegistery = new MyRegistry();
+
         /// <summary>
         /// 启动插件初始化
         /// </summary>
@@ -38,6 +42,17 @@ namespace com.genteure.cqp.bangumi
         [DllExport("_eventStartup", CallingConvention.StdCall)]
         internal static CoolQApi.Event Startup()
         {
+            // 不是很好的写法，不过能完成工作
+            try
+            { helpmsg = File.ReadAllText(CoolQApi.GetAppDirectory() + HELPMSG_FILE_NAME); }
+            catch (Exception)
+            {
+                try
+                { helpmsg = File.ReadAllText(CoolQApi.GetAppDirectory() + HELPMSG_FILE_NAME); }
+                catch (Exception ex)
+                { CoolQApi.SendPrivateMsg(MASTER_QQ, ex.ToString()); }
+            }
+
             JobManager.UseUtcTime();
             JobManager.JobException += x => CoolQApi.SendPrivateMsg(MASTER_QQ, x.Name + x.Exception.ToString());
 
@@ -45,7 +60,7 @@ namespace com.genteure.cqp.bangumi
                 SQLiteOpenFlags.Create | SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.FullMutex);
             db.CreateTableAsync<Subscriber>();
 
-            JobManager.Initialize(new MyRegistry());
+            JobManager.Initialize(myRegistery);
             return CoolQApi.Event.Ignore;
         }
 
@@ -100,7 +115,7 @@ namespace com.genteure.cqp.bangumi
                 return CoolQApi.Event.Ignore;
             // 没有子命令
             if (cmd.Count < 2)
-                cmd.Add("help");
+                cmd.Add(string.Empty);
             int bid = cmd.Count >= 3 ? int.TryParse(cmd[2], out int tmp) ? tmp : 0 : -1;
             switch (cmd[1].ToLower())
             {
@@ -157,9 +172,7 @@ namespace com.genteure.cqp.bangumi
                     reply = $"你在此群订阅了 {list.Count} 部番";
                     list.ForEach(x => reply += "\n" + x.BangumiID + (BangumiName.TryGetValue(x.BangumiID, out string name) ? " - " + name : ""));
                     break;
-                default:
-                case "帮助":
-                case "help":
+                default:// 使用帮助
                     reply = helpmsg;
                     break;
                 case "debug.task":
@@ -177,7 +190,30 @@ namespace com.genteure.cqp.bangumi
                     else
                     {
                         reply = "[调试信息]储存的番剧列表：";
-                        BangumiName.ToList().ForEach(x => reply += "\n[" + x.Key + "]" + x.Value);
+                        BangumiName.OrderBy(x => x.Key).ToList().ForEach(x => reply += "\n[" + x.Key + "]" + x.Value);
+                    }
+                    break;
+                case "debug.reload.helpmsg":
+                    if (fromQQ != MASTER_QQ)
+                    { reply = "没有权限"; }
+                    else
+                    {
+                        try
+                        {
+                            helpmsg = File.ReadAllText(CoolQApi.GetAppDirectory() + HELPMSG_FILE_NAME);
+                            reply = "成功";
+                        }
+                        catch (Exception ex)
+                        { reply = ex.ToString(); }
+                    }
+                    break;
+                case "debug.reload.bangumi":
+                    if (fromQQ != MASTER_QQ)
+                    { reply = "没有权限"; }
+                    else
+                    {
+                        myRegistery.TriggerUpdate();
+                        reply = "成功";
                     }
                     break;
             }
@@ -185,7 +221,7 @@ namespace com.genteure.cqp.bangumi
                 CoolQApi.SendGroupMsg(fromGroup, CoolQApi.CQC_At(fromQQ) + "\n" + reply);
             return CoolQApi.Event.Block;
         }
-        private const string helpmsg = "追番系统\n\n主命令 " + COMMAND_NAME1 + " 或 " + COMMAND_NAME2 +
+        private static string helpmsg = "追番系统\n\n主命令 " + COMMAND_NAME1 + " 或 " + COMMAND_NAME2 +
             "\n\n订阅/add/sub 番剧ID\n  订阅番剧\n取消订阅/remove/unsub 番剧ID\n  取消订阅番剧\n" +
             "我的订阅/list\n  列出已经订阅的番剧\n帮助/help\n  获取此帮助信息";
 

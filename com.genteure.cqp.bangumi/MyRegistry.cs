@@ -27,6 +27,12 @@ namespace com.genteure.cqp.bangumi
             Schedule(() => FetchAndUpdateBangumiData()).WithName(FETCH_PM).ToRunEvery(1).Days().At(7 + 12, 3);
         }
 
+        internal void TriggerUpdate()
+        {
+            JobManager.RemoveJob(FETCH_RETRY);
+            JobManager.AddJob(() => FetchAndUpdateBangumiData(), x => x.WithName(FETCH_RETRY).ToRunNow()); // Retry
+        }
+
         /// <summary>
         /// 下载处理番剧数据
         /// </summary>
