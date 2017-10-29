@@ -57,7 +57,6 @@ namespace com.genteure.cqp.bangumi
         internal static CoolQApi.Event Exit()
         {
             JobManager.StopAndBlock();
-            //TODO: 停止计时器系统
             return CoolQApi.Event.Ignore;
         }
 
