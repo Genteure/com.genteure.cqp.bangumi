@@ -61,11 +61,12 @@ namespace com.genteure.cqp.bangumi
 
                 // 过滤出 (还未发布) 并且 (发布时间距离当前时间不到13小时) 的番剧
                 DateTime before = DateTime.UtcNow + new TimeSpan(13, 0, 0);
-                blist.Where(x => x.is_published == 0 && x.pub_ts_datetime < before).ToList().ForEach(x =>
-                {
+                DateTime now = DateTime.UtcNow;
+                blist.Where(x => x.pub_ts_datetime > now && x.pub_ts_datetime < before).ToList().ForEach(x =>
+                 {
                     // 计划定时任务
                     JobManager.AddJob(x, z => z.WithName(BANGUMI_NAME).ToRunOnceAt(x.pub_ts_datetime));
-                });
+                 });
             }
             catch (Exception)
             {
