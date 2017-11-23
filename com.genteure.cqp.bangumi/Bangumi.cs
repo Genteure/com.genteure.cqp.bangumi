@@ -12,17 +12,19 @@ namespace com.genteure.cqp.bangumi
         public Bangumi(JObject j)
         {
             cover = j["cover"].ToObject<string>();
-            delay = j["delay"].ToObject<int>();
+            title = j["title"].ToObject<string>();
             ep_id = j["ep_id"].ToObject<int>();
             favorites = j["favorites"].ToObject<int>();
             is_published = j["is_published"].ToObject<int>();
-            pub_index = j["pub_index"].ToObject<string>();
+            index = j["pub_index"]?.ToObject<string>() ?? j["delay_index"]?.ToObject<string>() ?? string.Empty;
             pub_time = j["pub_time"].ToObject<string>();
             pub_ts = j["pub_ts"].ToObject<int>();
+            delay = j["delay"].ToObject<int>();
+            delay_reason = j["delay_reason"]?.ToObject<string>() ?? string.Empty;
             season_id = j["season_id"].ToObject<int>();
             season_status = j["season_status"].ToObject<int>();
             square_cover = j["square_cover"].ToObject<string>();
-            title = j["title"].ToObject<string>();
+
 
             pub_ts_datetime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(pub_ts);
         }
@@ -30,10 +32,17 @@ namespace com.genteure.cqp.bangumi
         async void IJob.Execute()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("【{0}】更新啦！\n", title);
-            sb.AppendFormat("{0} 更新时间：{1}\n", pub_index, pub_time);
-            sb.AppendFormat("https://bangumi.bilibili.com/anime/{0}/play#{1} ", season_id, ep_id);
-            //sb.Append("\n注：这是一个还在开发中的半成品插件——宅急送队长");
+            sb.AppendFormat("【{0}】", title);
+            if (delay == 0)
+            {
+                sb.AppendLine("更新啦！");
+                sb.AppendFormat("{0} 更新时间：{1}\n", index, pub_time);
+                sb.AppendFormat("https://bangumi.bilibili.com/anime/{0}/play#{1} ", season_id, ep_id);
+            }
+            else
+            {
+                sb.AppendLine(delay_reason);
+            }
 
             var list = (await Main.db.Table<Subscriber>().Where(x => x.BangumiID == season_id).ToListAsync()).GroupBy(x => x.GroupID, x => x.QQID);
             foreach (var group in list)
@@ -43,19 +52,15 @@ namespace com.genteure.cqp.bangumi
                     at += CoolQApi.CQC_At(qq);
                 CoolQApi.SendGroupMsg(group.Key, sb.ToString() + "\n\n" + at);
             }
-
-            // CoolQApi.SendPrivateMsg(Main.MasterQQ, sb.ToString());
-            // long[] g = { 627565437, 95349372, 423768065, 549858724 };
-            // foreach (var q in g)
-            //    CoolQApi.SendGroupMsg(q, sb.ToString());
         }
 
         public string cover { get; set; }
         public int delay { get; set; }
+        public string delay_reason { get; set; }
         public int ep_id { get; set; }
         public int favorites { get; set; }
         public int is_published { get; set; }
-        public string pub_index { get; set; }
+        public string index { get; set; }
         public string pub_time { get; set; }
         public int pub_ts { get; set; }
         public DateTime pub_ts_datetime { get; set; }
